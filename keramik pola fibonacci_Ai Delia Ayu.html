@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisasi Keramik 2xN Dinamis</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f0f8; 
+        }
+
+        h1 {
+            color: #5b2c6f; 
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #9b59b6; 
+            background-color: #ecf0f1;
+            border-radius: 5px;
+        }
+
+        #inputN {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #9b59b6;
+            border-radius: 3px;
+            width: 60px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #9b59b6; 
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #8e44ad; 
+        }
+
+        /* Gaya untuk Visualisasi */
+        .tiling-row {
+            display: flex;
+            margin-bottom: 20px;
+            border: 3px solid #5b2c6f; 
+            width: fit-content;
+            height: 100px;
+            box-shadow: 0 4px 8px rgba(91, 44, 111, 0.2); 
+        }
+
+        /* Keramik Vertikal (V) - Ukuran 2x1 */
+        .tileV {
+            width: 50px;
+            height: 100%;
+            border-right: 1px solid #f1c40f; 
+            background-color: #f39c12; 
+            color: #5b2c6f; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        /* Wadah untuk Keramik Horizontal (HH) - Ukuran 2x2 */
+        .tileHbox {
+            width: 100px;
+            height: 100%;
+            border-right: 1px solid #8e44ad; 
+            display: flex;
+            flex-direction: column;
+            background-color: #9b59b6; 
+        }
+
+        /* Dua bagian keramik horizontal 1x2 yang disusun */
+        .tileHbox > div {
+            width: 100%;
+            height: 50%;
+            border-bottom: 1px solid #5b2c6f; 
+            box-sizing: border-box;
+            background-color: #8e44ad; 
+            color: #f1c40f; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .tileHbox > div:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Visualisasi Keramik 2xN</h1>
+
+    <div class="controls">
+        <label for="inputN">Masukkan nilai N (misalnya: 1 sampai 5):</label>
+        <input type="number" id="inputN" value="3" min="1" max="10">
+        <button onclick="generateTiling()">Tampilkan Kombinasi</button>
+    </div>
+    
+    <div id="resultContainer">
+        <p>Silakan masukkan nilai N dan klik tombol untuk melihat semua kombinasinya.</p>
+    </div>
+
+    <script>
+        function generateAllTilings(n) {
+            
+            const result = [];
+
+            /** 
+             * @param {number} currentN 
+             * @param {Array<string>} currentTiling 
+             */
+            function recursiveTiling(currentN, currentTiling) {
+                
+                if (currentN === 0) {
+                    
+                    result.push(currentTiling);
+                    return;
+                }
+                if (currentN >= 1) {
+                    recursiveTiling(currentN - 1, [...currentTiling, 'V']);
+                }
+
+                
+                if (currentN >= 2) {
+                    recursiveTiling(currentN - 2, [...currentTiling, 'HH']);
+                }
+            }
+
+            recursiveTiling(n, []);
+            return result;
+        }
+
+        /**
+         */
+        function createTilingElement(tilingArray, index) {
+            const container = document.createElement('div');
+            container.className = 'tiling-row';
+            const patternText = tilingArray.map(tile => {
+                return tile === 'V' ? 'Vertikal (V)' : 'Horizontal (HH)';
+            }).join(', ');
+            
+            
+            let tileIndex = 1;
+            for (const tileType of tilingArray) {
+                if (tileType === 'V') {
+                    const tileV = document.createElement('div');
+                    tileV.className = 'tileV';
+                    tileV.textContent = `V${tileIndex}`;
+                    container.appendChild(tileV);
+                    tileIndex++;
+                } else if (tileType === 'HH') {
+                    const tileHbox = document.createElement('div');
+                    tileHbox.className = 'tileHbox';
+                    
+                    const h1 = document.createElement('div');
+                    h1.textContent = `H${tileIndex}-1`;
+                    
+                    const h2 = document.createElement('div');
+                    h2.textContent = `H${tileIndex}-2`;
+                    
+                    tileHbox.appendChild(h1);
+                    tileHbox.appendChild(h2);
+                    container.appendChild(tileHbox);
+                    tileIndex += 2; 
+                }
+            }
+
+            
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = `<h3>Kombinasi ${index}: ${patternText}</h3>`;
+            wrapper.appendChild(container);
+            
+            return wrapper;
+        }
+
+
+        /**
+         */
+        function generateTiling() {
+            const inputElement = document.getElementById('inputN');
+            const n = parseInt(inputElement.value);
+            const container = document.getElementById('resultContainer');
+            
+            
+            if (isNaN(n) || n < 1 || n > 10) {
+                container.innerHTML = '<p style="color: red;">Masukkan nilai N yang valid (1-10).</p>';
+                if (inputElement) inputElement.value = 1;
+                return;
+            }
+            
+            const allTilings = generateAllTilings(n);
+
+            container.innerHTML = `<h2>Kombinasi Sususan Keramik 2x${n}</h2>`;
+            container.innerHTML += `<p>Total Kombinasi: <strong>${allTilings.length}</strong> (Ini adalah bilangan Fibonacci ke-${n + 1})</p><hr>`;
+            
+            let combinationIndex = 1;
+            for (const tiling of allTilings) {
+                const tilingElement = createTilingElement(tiling, combinationIndex);
+                container.appendChild(tilingElement);
+                combinationIndex++;
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const inputN = document.getElementById('inputN');
+            if (inputN && (isNaN(parseInt(inputN.value)) || parseInt(inputN.value) < 1)) {
+                 inputN.value = 3; 
+            }
+            generateTiling();
+        });
+    </script>
+</body>
+</html>
